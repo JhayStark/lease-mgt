@@ -2,6 +2,10 @@ const Official = require('../models/official.model');
 const bcrypt = require('bcryptjs');
 const { object, string, array } = require('yup');
 const { createAccessToken, createRefreshToken } = require('../../config/jwt');
+const {
+  duplicateAndValidationErrorhandler,
+} = require('../../helpers/errorHandlers');
+const { officialsPermissions } = require('../../config/rolesAndPermissions');
 
 const salt = bcrypt.genSaltSync(10);
 const officialSchema = object({
@@ -17,22 +21,21 @@ const createOfficial = async data => {
   const official = await officialSchema.validate(data);
   const hashedPassword = await bcrypt.hash(official.password, salt);
   official.password = hashedPassword;
-  const officialExists = await Official.findOne({
-    $or: [{ email }, { idNumber }, { phoneNumber }],
-  });
-  if (officialExists) throw new Error('Official Exists');
+  //remove after development
+  official.permissions = [...Object.values(officialsPermissions)];
   const newOfficial = await Official.create(official);
   if (newOfficial) return newOfficial;
 };
 
 const registerOfficial = async (req, res) => {
+  console.log(req.body);
   try {
     const newOfficial = await createOfficial(req.body);
     if (newOfficial)
       return res.status(201).json({ message: 'Official created successfully' });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: 'Internal server error' });
+    duplicateAndValidationErrorhandler(error, res);
   }
 };
 
@@ -50,8 +53,15 @@ const loginOfficial = async (req, res) => {
         permissions: official.permissions,
         firstName: official.firstName,
       };
-      if (isMatch) return res.status(200).json(officialObject);
-      else return res.status(400).json({ message: 'Invalid credentials' });
+      if (isMatch) {
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'None',
+          maxAge: 24 * 60 * 60 * 1000,
+        });
+        return res.status(200).json(officialObject);
+      } else return res.status(400).json({ message: 'Invalid credentials' });
     }
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });

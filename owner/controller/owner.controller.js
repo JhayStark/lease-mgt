@@ -7,6 +7,7 @@ const { isValidId } = require('../../helpers/validators');
 const {
   duplicateAndValidationErrorhandler,
 } = require('../../helpers/errorHandlers');
+const { officialsPermissions } = require('../../config/rolesAndPermissions');
 
 const ownerShipMemberSchema = array()
   .of(
@@ -33,6 +34,10 @@ const ownerShipBodySchema = object({
 });
 
 const createOwnerShipBody = async (req, res) => {
+  const permissions = req.user.permissions;
+  if (!permissions.includes(officialsPermissions.createOwnerShipBody)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
   try {
     const validSchema = await ownerShipBodySchema.validate(req.body);
     const exisitinghead = await User.findById(validSchema.head);
@@ -58,6 +63,10 @@ const createOwnerShipBody = async (req, res) => {
 };
 
 const addOwnerShipBodyMember = async (req, res) => {
+  const permissions = req.user.permissions;
+  if (!permissions.includes(officialsPermissions.createOwnerShipBodyMember)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
   try {
     const validSchema = await ownerShipMemberSchema.validate(req.body.members);
 
@@ -79,6 +88,10 @@ const addOwnerShipBodyMember = async (req, res) => {
 };
 
 const getOwnerShipBodies = async (req, res) => {
+  const permissions = req.user.permissions;
+  if (!permissions.includes(officialsPermissions.readOwnerShipBody)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
   try {
     let pageNumber = parseInt(req.query.pageNumber) || 1;
     let pageSize = parseInt(req.query.pageSize) || 10;
@@ -159,8 +172,11 @@ const getOwnerShipBodies = async (req, res) => {
   }
 };
 
-//add pagination
 const getOwnerShipBodyMembers = async (req, res) => {
+  const permissions = req.user.permissions;
+  if (!permissions.includes(officialsPermissions.readOwnerShipBodyMember)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
   try {
     const name = req.query.name || '';
     const idNumber = req.query.idNumber || '';
@@ -237,6 +253,10 @@ const getOwnerShipBodyMembers = async (req, res) => {
 };
 
 const getOwnerShipBodyById = async (req, res) => {
+  const permissions = req.user.permissions;
+  if (!permissions.includes(officialsPermissions.readOwnerShipBody)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
   try {
     const ownerShipBody = await OwnerShipBody.findById(req.params.id).populate([
       { path: 'head', select: '-password' },
@@ -252,6 +272,10 @@ const getOwnerShipBodyById = async (req, res) => {
 };
 
 const getOwnerShipBodyMemberById = async (req, res) => {
+  const permissions = req.user.permissions;
+  if (!permissions.includes(officialsPermissions.readOwnerShipBodyMember)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
   try {
     const ownerShipMember = await OwnerShipMember.findById(
       req.params.id
@@ -269,6 +293,10 @@ const getOwnerShipBodyMemberById = async (req, res) => {
 };
 
 const updateOwnerShipBody = async (req, res) => {
+  const permissions = req.user.permissions;
+  if (!permissions.includes(officialsPermissions.updateOwnerShipBody)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
   try {
     const ownerShipBody = await OwnerShipBody.findByIdAndUpdate(
       req.params.id,
@@ -285,6 +313,10 @@ const updateOwnerShipBody = async (req, res) => {
 };
 
 const updateOwnerShipBodyMember = async (req, res) => {
+  const permissions = req.user.permissions;
+  if (!permissions.includes(officialsPermissions.updateOwnerShipBodyMember)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
   try {
     const ownerShipMember = await OwnerShipMember.findByIdAndUpdate(
       req.params.id,

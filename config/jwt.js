@@ -34,13 +34,13 @@ const verifyToken = (req, res, next) => {
       return res.status(401).json({ message: 'Invalid access token' });
     }
   } catch (error) {
-    res.status(401).json('Invalid token');
+    res.status(401).json({ message: 'Invalid token' });
   }
 };
 
 const verifyRefreshToken = (refreshToken, user) => {
   const valid = verify(refreshToken, process.env.JWT_SECRET);
-  if (!valid) return res.status(403).send('Forbidden');
+  if (!valid) return res.status(403).json({ message: 'Forbidden' });
   return valid.id === user.id;
 };
 

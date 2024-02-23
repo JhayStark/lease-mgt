@@ -2,6 +2,9 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const { object, string } = require('yup');
 const { createAccessToken, createRefreshToken } = require('../../config/jwt');
+const {
+  duplicateAndValidationErrorhandler,
+} = require('../../helpers/errorHandlers');
 
 const salt = bcrypt.genSaltSync(10);
 const userSchema = object({
@@ -20,12 +23,15 @@ const createUser = async data => {
   user.password = `${user.phoneNumber}LM`;
   const hashedPassword = await bcrypt.hash(user.password, salt);
   user.password = hashedPassword;
-  const userExists =
-    (await User.findOne({ email: user.email })) ||
-    (await User.findOne({ idNumber: user.idNumber })) ||
-    (await User.findOne({ phoneNumber: user.phoneNumber }));
-  if (userExists) throw new Error('user Exists');
-  const newUser = await User.create(user);
+  // const userExists =
+  //   (await User.findOne({ email: user.email })) ||
+  //   (await User.findOne({ idNumber: user.idNumber })) ||
+  //   (await User.findOne({ phoneNumber: user.phoneNumber }));
+  // if (userExists) throw new Error('user Exists');
+  const newUser = await User.create({
+    ...user,
+    name: `${user.firstName} ${user.lastName}`,
+  });
   if (newUser) return newUser;
 };
 
@@ -35,7 +41,7 @@ const addNewUser = async (req, res) => {
     if (user) return res.status(200).json(user);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: 'Internal server error' });
+    duplicateAndValidationErrorhandler(error, res);
   }
 };
 
@@ -52,8 +58,14 @@ const loginUser = async (req, res) => {
         refreshToken,
         firstName: user.firstName,
       };
-      if (isMatch) return res.status(200).json(userObject);
-      else return res.status(400).json({ message: 'Invalid credentials' });
+      if (isMatch) {
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+        });
+        return res.status(200).json(userObject);
+      } else return res.status(400).json({ message: 'Invalid credentials' });
     }
     res.status(400).json({ message: 'Invalid credentials' });
   } catch (error) {

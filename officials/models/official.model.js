@@ -15,4 +15,5 @@ const officialSchema = new Schema(
   { timestamps: true }
 );
 
+officialSchema.index({ staffId: 1 }, { unique: true });
 module.exports = model('Official', officialSchema);
