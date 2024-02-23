@@ -125,24 +125,33 @@ const getOwnerShipBodies = async (req, res) => {
     const metaData = {
       pageNumber,
       pageSize,
-      total: countResult.length ? countResult[0].total : 0,
+      total: Math.ceil(countResult[0].total / pageSize),
     };
 
     if (metaData.total === 0) {
       return res.status(200).json({ result: [], metaData });
     }
 
-    if (metaData.total < 10) {
-      metaData.pageNumber = 1;
-      metaData.pageSize = metaData.total;
-    }
-
     const result = await OwnerShipBody.aggregate([
       ...aggregationPipline,
       { $sort: { createdAt: -1 } },
-      { $skip: (metaData.pageNumber - 1) * metaData.pageSize },
-      { $limit: metaData.pageSize },
-    ]);
+      {
+        $project: {
+          name: 1,
+          ownerShipId: 1,
+          type: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          'head.idNumber': 1,
+          'head.email': 1,
+          'head.phoneNumber': 1,
+          'head.firstName': 1,
+          'head.lastName': 1,
+        },
+      },
+    ])
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize);
 
     res.status(200).json({ result, metaData });
   } catch (error) {
@@ -153,6 +162,10 @@ const getOwnerShipBodies = async (req, res) => {
 //add pagination
 const getOwnerShipBodyMembers = async (req, res) => {
   try {
+    const name = req.query.name || '';
+    const idNumber = req.query.idNumber || '';
+    const pageNumber = parseInt(req.query.pageNumber) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 10;
     const ownerShipBodyId = isValidId(req.params.id)
       ? new mongoose.Types.ObjectId(req.params.id)
       : null;
@@ -174,18 +187,125 @@ const getOwnerShipBodyMembers = async (req, res) => {
       {
         $unwind: '$user',
       },
+      {
+        $match: {
+          'user.name': { $regex: name, $options: 'i' },
+          'user.idNumber': { $regex: idNumber, $options: 'i' },
+        },
+      },
     ];
-    const result = await OwnerShipMember.aggregate(aggregationPipline);
-    res.status(200).json({ result });
+
+    const countResult = await OwnerShipMember.aggregate([
+      ...aggregationPipline,
+      { $count: 'total' },
+    ]);
+
+    if (countResult.length === 0) {
+      return res.status(200).json({ result: [] });
+    }
+
+    const metaData = {
+      pageNumber,
+      pageSize,
+    };
+
+    metaData.total = Math.ceil(countResult[0].total / pageSize);
+
+    const result = await OwnerShipMember.aggregate([
+      ...aggregationPipline,
+      { $sort: { createdAt: -1 } },
+      {
+        $project: {
+          userId: 1,
+          ownerShipId: 1,
+          role: 1,
+          'user.firstName': 1,
+          'user.lastName': 1,
+          'user.idNumber': 1,
+          'user.email': 1,
+          'user.phoneNumber': 1,
+        },
+      },
+    ])
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize);
+    res.status(200).json({ result, ...metaData });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
+const getOwnerShipBodyById = async (req, res) => {
+  try {
+    const ownerShipBody = await OwnerShipBody.findById(req.params.id).populate([
+      { path: 'head', select: '-password' },
+    ]);
+    if (!ownerShipBody) {
+      return res.status(404).json({ message: 'Ownership Body not found' });
+    }
+    res.status(200).json(ownerShipBody);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const getOwnerShipBodyMemberById = async (req, res) => {
+  try {
+    const ownerShipMember = await OwnerShipMember.findById(
+      req.params.id
+    ).populate([
+      { path: 'userId', select: '-password' },
+      { path: 'ownerShipId' },
+    ]);
+    if (!ownerShipMember) {
+      return res.status(404).json({ message: 'Ownership Member not found' });
+    }
+    res.status(200).json(ownerShipMember);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const updateOwnerShipBody = async (req, res) => {
+  try {
+    const ownerShipBody = await OwnerShipBody.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!ownerShipBody) {
+      return res.status(404).json({ message: 'Ownership Body not found' });
+    }
+    res.status(200).json(ownerShipBody);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const updateOwnerShipBodyMember = async (req, res) => {
+  try {
+    const ownerShipMember = await OwnerShipMember.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!ownerShipMember) {
+      return res.status(404).json({ message: 'Ownership Member not found' });
+    }
+    res.status(200).json(ownerShipMember);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 module.exports = {
   createOwnerShipBody,
   addOwnerShipBodyMember,
   getOwnerShipBodies,
   getOwnerShipBodyMembers,
+  getOwnerShipBodyById,
+  getOwnerShipBodyMemberById,
+  updateOwnerShipBody,
+  updateOwnerShipBodyMember,
 };
