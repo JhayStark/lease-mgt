@@ -9,7 +9,6 @@ const leaseSchema = new Schema(
     },
     createdBy: {
       type: Schema.Types.ObjectId,
-      required: true,
       ref: 'User',
     },
     startDate: {
@@ -21,9 +20,19 @@ const leaseSchema = new Schema(
       required: true,
     },
     lessee: {
-      type: Schema.Types.ObjectId,
+      type: Object,
       required: true,
-      ref: 'User',
+      default: {
+        name: '',
+        email: '',
+        phone: '',
+        iDNumber: ' ',
+        idType: '',
+        address: '',
+        nationality: '',
+        occupation: '',
+        image: '',
+      },
     },
     beneficialOwner: {
       type: Schema.Types.ObjectId,
@@ -34,12 +43,23 @@ const leaseSchema = new Schema(
       type: Array,
       required: true,
     },
-    rentAmount: {
-      type: String,
+    groundRent: {
+      type: Number,
       required: true,
+    },
+    lessor: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: 'OwnerShipBody',
+    },
+    groundRentHistory: {
+      type: Array,
+      default: [],
     },
   },
   { timestamps: true }
 );
+
+leaseSchema.index({ propertyId: 1, startDate: 1 }, { unique: true });
 
 module.exports = model('Lease', leaseSchema);

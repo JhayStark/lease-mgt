@@ -11,6 +11,7 @@ const authRouter = require('./users/routes/auth.route');
 const officialAuthRouter = require('./officials/routes/auth.routes');
 const ownerRouter = require('./owner/routes/owner.routes');
 const propertyRouter = require('./properties/routes/property.routes');
+const leaseRouter = require('./lease/routes/lease.routes');
 const { verifyToken } = require('./config/jwt');
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/user', authRouter);
 app.use('/official', officialAuthRouter);
 app.use('/owner', verifyToken, ownerRouter);
 app.use('/property', propertyRouter);
+app.use('/lease', leaseRouter);
 
 (async function start() {
   await dbConnect();

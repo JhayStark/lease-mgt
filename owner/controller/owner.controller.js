@@ -138,7 +138,8 @@ const getOwnerShipBodies = async (req, res) => {
     const metaData = {
       pageNumber,
       pageSize,
-      total: Math.ceil(countResult[0].total / pageSize),
+      total: countResult[0].total || 0,
+      totalPages: Math.ceil(countResult[0].total / pageSize),
     };
 
     if (metaData.total === 0) {
@@ -223,9 +224,9 @@ const getOwnerShipBodyMembers = async (req, res) => {
     const metaData = {
       pageNumber,
       pageSize,
+      total: countResult[0].total || 0,
+      totalPages: Math.ceil(countResult[0].total / pageSize),
     };
-
-    metaData.total = Math.ceil(countResult[0].total / pageSize);
 
     const result = await OwnerShipMember.aggregate([
       ...aggregationPipline,
