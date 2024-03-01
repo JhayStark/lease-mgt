@@ -45,22 +45,23 @@ const loginOfficial = async (req, res) => {
     const official = await Official.findOne({ email });
     if (official) {
       const isMatch = await bcrypt.compare(password, official.password);
-      const accessToken = createAccessToken(official);
-      const refreshToken = createRefreshToken(official);
-      const officialObject = {
-        accessToken,
-        refreshToken,
-        permissions: official.permissions,
-        firstName: official.firstName,
-      };
+
       if (isMatch) {
+        const accessToken = createAccessToken(official);
+        const refreshToken = createRefreshToken(official);
+        const officialObject = {
+          accessToken,
+          refreshToken,
+          permissions: official.permissions,
+          firstName: official.firstName,
+        };
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'None',
+          sameSite: 'none',
           maxAge: 24 * 60 * 60 * 1000,
+          // secure: true,
         });
-        return res.status(200).json(officialObject);
+        return res.status(200).json({ officialObject });
       } else return res.status(400).json({ message: 'Invalid credentials' });
     }
   } catch (error) {

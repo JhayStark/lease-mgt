@@ -2,6 +2,7 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const { object, string } = require('yup');
 const { createAccessToken, createRefreshToken } = require('../../config/jwt');
+const { sendSMS } = require('../../utilities/sms');
 const {
   duplicateAndValidationErrorhandler,
 } = require('../../helpers/errorHandlers');
@@ -23,16 +24,17 @@ const createUser = async data => {
   user.password = `${user.phoneNumber}LM`;
   const hashedPassword = await bcrypt.hash(user.password, salt);
   user.password = hashedPassword;
-  // const userExists =
-  //   (await User.findOne({ email: user.email })) ||
-  //   (await User.findOne({ idNumber: user.idNumber })) ||
-  //   (await User.findOne({ phoneNumber: user.phoneNumber }));
-  // if (userExists) throw new Error('user Exists');
   const newUser = await User.create({
     ...user,
     name: `${user.firstName} ${user.lastName}`,
   });
-  if (newUser) return newUser;
+  if (newUser) {
+    sendSMS(
+      user.phoneNumber,
+      `Welcome to asset911 Lease Management your password is ${user.password}`
+    );
+    return newUser;
+  }
 };
 
 const addNewUser = async (req, res) => {
@@ -40,7 +42,6 @@ const addNewUser = async (req, res) => {
     const user = await createUser(req.body);
     if (user) return res.status(200).json(user);
   } catch (error) {
-    console.log(error);
     duplicateAndValidationErrorhandler(error, res);
   }
 };

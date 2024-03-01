@@ -12,6 +12,7 @@ const officialAuthRouter = require('./officials/routes/auth.routes');
 const ownerRouter = require('./owner/routes/owner.routes');
 const propertyRouter = require('./properties/routes/property.routes');
 const leaseRouter = require('./lease/routes/lease.routes');
+const userRouter = require('./users/routes/user.route');
 const { verifyToken } = require('./config/jwt');
 
 const app = express();
@@ -27,7 +28,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/user', authRouter);
+app.use('/user', userRouter);
 app.use('/official', officialAuthRouter);
 app.use('/owner', verifyToken, ownerRouter);
 app.use('/property', propertyRouter);
