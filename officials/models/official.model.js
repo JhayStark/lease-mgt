@@ -11,6 +11,9 @@ const officialSchema = new Schema(
       type: Array,
       default: [],
     },
+    refreshToken: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

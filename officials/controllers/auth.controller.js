@@ -55,6 +55,8 @@ const loginOfficial = async (req, res) => {
           permissions: official.permissions,
           firstName: official.firstName,
         };
+        official.refreshToken = refreshToken;
+        await official.save();
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           sameSite: 'none',
