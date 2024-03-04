@@ -23,12 +23,14 @@ const createOfficial = async data => {
   official.password = hashedPassword;
   //remove after development
   official.permissions = [...Object.values(officialsPermissions)];
-  const newOfficial = await Official.create(official);
+  const newOfficial = await Official.create({
+    ...official,
+    name: `${official.firstName} ${official.lastName}`,
+  });
   if (newOfficial) return newOfficial;
 };
 
 const registerOfficial = async (req, res) => {
-  console.log(req.body);
   try {
     const newOfficial = await createOfficial(req.body);
     if (newOfficial)
@@ -61,7 +63,7 @@ const loginOfficial = async (req, res) => {
           httpOnly: true,
           sameSite: 'none',
           maxAge: 24 * 60 * 60 * 1000,
-          // secure: true,
+          secure: true,
         });
         return res.status(200).json({ officialObject });
       } else return res.status(400).json({ message: 'Invalid credentials' });

@@ -4,7 +4,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
-const corsOptions = require('./config/corsOptions');
 const dbConnect = require('./config/dbConfig');
 const credentials = require('./config/credentials');
 const authRouter = require('./users/routes/auth.route');
@@ -14,13 +13,14 @@ const propertyRouter = require('./properties/routes/property.routes');
 const leaseRouter = require('./lease/routes/lease.routes');
 const userRouter = require('./users/routes/user.route');
 const serverSessionRouter = require('./config/server-session');
+const officialRouter = require('./officials/routes/official.routes');
+const { corsOptions } = require('./config/corsOptions');
 const { verifyToken } = require('./config/jwt');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 dotenv.config();
-
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(credentials);
@@ -31,7 +31,8 @@ app.use(cookieParser());
 
 app.use('/session', serverSessionRouter);
 app.use('/user', userRouter);
-app.use('/official', officialAuthRouter);
+app.use('/official-auth', officialAuthRouter);
+app.use('/officials', officialRouter);
 app.use('/owner', verifyToken, ownerRouter);
 app.use('/property', propertyRouter);
 app.use('/lease', leaseRouter);
