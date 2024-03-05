@@ -31,6 +31,7 @@ app.use(cookieParser());
 
 app.use('/session', serverSessionRouter);
 app.use('/user', userRouter);
+app.use('/user-auth', authRouter);
 app.use('/official-auth', officialAuthRouter);
 app.use('/officials', officialRouter);
 app.use('/owner', verifyToken, ownerRouter);

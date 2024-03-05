@@ -20,7 +20,7 @@ const createNewOfficial = async (req, res) => {
   try {
     const newOfficial = await createOfficial(req.body);
     if (newOfficial)
-      return res.status(201).json({ message: 'Official created successfully' });
+      return res.status(201).json('Official created successfully');
   } catch (error) {
     duplicateAndValidationErrorhandler(error, res);
   }
