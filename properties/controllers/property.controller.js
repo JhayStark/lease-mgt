@@ -6,6 +6,9 @@ const { isValidId } = require('../../helpers/validators');
 const {
   duplicateAndValidationErrorhandler,
 } = require('../../helpers/errorHandlers');
+const {
+  sendNotificationToMembersOfOwnerShipBody,
+} = require('../../utilities/notifications');
 
 const createPropertySchema = object({
   plotId: string().required(),
@@ -38,7 +41,10 @@ const createProperty = async (req, res) => {
     if (!newProperty) {
       return res.status(400).json({ message: 'Property not created' });
     }
-
+    sendNotificationToMembersOfOwnerShipBody(
+      validProperty?.ownerShipBodyId,
+      `A new property has been added to the properties of ${existingOwnerShipBody.name}.`
+    );
     return res.status(201).json({
       message: 'Property Created',
     });
@@ -188,9 +194,14 @@ const updateProperty = async (req, res) => {
     if (!property) {
       return res.status(404).json({ message: 'Property not found' });
     }
-    return res.status(200).json(property);
+    sendNotificationToMembersOfOwnerShipBody(
+      property.ownerShipBodyId,
+      `An update has occured on the following property: ${property.plotId} located at ${property.location}.`
+    );
+    res.status(200).json(property);
   } catch (error) {
-    return res.status(500).json({ message: 'Internal Server Error' });
+    console.log(error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 

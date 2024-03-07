@@ -8,6 +8,11 @@ const {
   duplicateAndValidationErrorhandler,
 } = require('../../helpers/errorHandlers');
 const { officialsPermissions } = require('../../config/rolesAndPermissions');
+const { sendSMS } = require('../../utilities/sms');
+const {
+  sendNotificationToMembersOfOwnerShipBody,
+  sendNotificationToNewMembersOfOwnerShipBody,
+} = require('../../utilities/notifications');
 
 const ownerShipMemberSchema = array()
   .of(
@@ -55,6 +60,8 @@ const createOwnerShipBody = async (req, res) => {
     });
 
     if (newOwnerShipBody && newOwnerShipMember) {
+      const inviteMessage = `Welcome to Asset911, a new property ownership body ${newOwnerShipBody.name} has been created with you as the Ownership Head`;
+      sendSMS(exisitinghead.phoneNumber, inviteMessage);
       res.status(201).json({ message: 'Ownership Body created' });
     }
   } catch (error) {
@@ -80,7 +87,10 @@ const addOwnerShipBodyMember = async (req, res) => {
         return { ...member, ownerShipId: req.params.id };
       })
     );
-
+    sendNotificationToNewMembersOfOwnerShipBody(
+      validSchema,
+      `Hello, you have been added to the Ownership Body (${existingOwnerShipBody.name}).`
+    );
     res.status(201).json({ message: 'Ownership Body members added' });
   } catch (error) {
     return duplicateAndValidationErrorhandler(error, res);
@@ -186,7 +196,6 @@ const getOwnerShipBodyMembers = async (req, res) => {
     const ownerShipBodyId = isValidId(req.params.id)
       ? new mongoose.Types.ObjectId(req.params.id)
       : null;
-
     const aggregationPipline = [
       {
         $match: {
@@ -307,6 +316,10 @@ const updateOwnerShipBody = async (req, res) => {
     if (!ownerShipBody) {
       return res.status(404).json({ message: 'Ownership Body not found' });
     }
+    sendNotificationToMembersOfOwnerShipBody(
+      req.params.id,
+      `An update has occured on an OwnershipBody(${ownerShipBody.name}) you are a member of.`
+    );
     res.status(200).json(ownerShipBody);
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
