@@ -32,11 +32,17 @@ const ownerShipBodySchema = object({
   head: mixed()
     .test('isValidMongoId', 'Invalid head', value => isValidId(value))
     .required(),
-  ownerShipId: string().required(),
   type: string()
     .oneOf(['Family', 'State', 'Organization', 'Individual'])
     .required(),
 });
+
+function generateUniqueId() {
+  const timestamp = Date.now().toString(36).toUpperCase(); // Base-36 timestamp for some uniqueness
+  const randomChars = Math.random().toString(36).substr(2, 5).toUpperCase(); // 5 random characters
+
+  return `${timestamp}-${randomChars}`;
+}
 
 const createOwnerShipBody = async (req, res) => {
   const permissions = req.user.permissions;
@@ -51,6 +57,7 @@ const createOwnerShipBody = async (req, res) => {
     }
     const newOwnerShipBody = await OwnerShipBody.create({
       ...validSchema,
+      ownerShipId: generateUniqueId(),
     });
 
     const newOwnerShipMember = await OwnerShipMember.create({
