@@ -35,7 +35,7 @@ const createUser = async data => {
   if (newUser) {
     sendSMS(
       user.phoneNumber,
-      `Welcome to asset911 Lease Management your password is ${user.password}`
+      `Hello, ${user.firstName} Welcome to asset911 Lease Management`
     );
     return newUser;
   }
