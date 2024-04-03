@@ -55,9 +55,11 @@ const createOwnerShipBody = async (req, res) => {
     if (!exisitinghead) {
       return res.status(400).json({ message: 'Invalid Family head' });
     }
+    const ownerShipId = generateUniqueId();
     const newOwnerShipBody = await OwnerShipBody.create({
       ...validSchema,
-      ownerShipId: generateUniqueId(),
+      ownerShipId,
+      search: `${validSchema.name} ${ownerShipId} ${exisitinghead.idNumber} ${exisitinghead.name}`,
     });
 
     const newOwnerShipMember = await OwnerShipMember.create({
@@ -116,6 +118,7 @@ const getOwnerShipBodies = async (req, res) => {
     const headId = req.query.head || '';
     const headName = req.query.headName || '';
     const name = req.query.name || '';
+    const search = req.query.search || '';
     const bodyObjectId = isValidId(req.query.id)
       ? new mongoose.Types.ObjectId(req.query.id)
       : null;
@@ -125,6 +128,7 @@ const getOwnerShipBodies = async (req, res) => {
         $match: {
           ownerShipId: { $regex: ownerShipId, $options: 'i' },
           name: { $regex: name, $options: 'i' },
+          search: { $regex: search, $options: 'i' },
           _id: bodyObjectId || { $exists: true },
         },
       },
@@ -186,6 +190,7 @@ const getOwnerShipBodies = async (req, res) => {
 
     res.status(200).json({ result, metaData });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
