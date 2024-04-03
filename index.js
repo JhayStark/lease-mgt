@@ -18,7 +18,6 @@ const { corsOptions } = require('./config/corsOptions');
 const { verifyToken } = require('./config/jwt');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 dotenv.config();
 app.use(helmet());
@@ -37,6 +36,8 @@ app.use('/officials', officialRouter);
 app.use('/owner', verifyToken, ownerRouter);
 app.use('/property', propertyRouter);
 app.use('/lease', leaseRouter);
+
+const PORT = process.env.PORT || 5000;
 
 (async function start() {
   await dbConnect();
