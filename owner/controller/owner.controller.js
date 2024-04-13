@@ -156,11 +156,13 @@ const getOwnerShipBodies = async (req, res) => {
       { $count: 'total' },
     ]);
 
+    const totalData = countResult[0]?.total || 0;
+
     const metaData = {
       pageNumber,
       pageSize,
-      total: countResult[0].total || 0,
-      totalPages: Math.ceil(countResult[0].total / pageSize),
+      total: totalData,
+      totalPages: Math.ceil(totalData / pageSize),
     };
 
     if (metaData.total === 0) {
@@ -242,11 +244,13 @@ const getOwnerShipBodyMembers = async (req, res) => {
       return res.status(200).json({ result: [] });
     }
 
+    const totalData = countResult[0]?.total || 0;
+
     const metaData = {
       pageNumber,
       pageSize,
-      total: countResult[0].total || 0,
-      totalPages: Math.ceil(countResult[0].total / pageSize),
+      total: totalData || 0,
+      totalPages: Math.ceil(totalData / pageSize),
     };
 
     const result = await OwnerShipMember.aggregate([
