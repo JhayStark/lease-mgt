@@ -83,7 +83,7 @@ const getProperties = async (req, res) => {
           as: 'ownerShipBody',
         },
       },
-      { $unwind: '$ownerShipBody' },
+      // { $unwind: '$ownerShipBody' },
       {
         $match: {
           'ownerShipBody.ownerShipId': { $regex: ownerShipId, $options: 'i' },
@@ -97,7 +97,7 @@ const getProperties = async (req, res) => {
           as: 'head',
         },
       },
-      { $unwind: '$head' },
+      // { $unwind: '$head' },
     ];
 
     if (isValidId(ownerShipBodyId)) {
@@ -187,6 +187,7 @@ const getPropertyById = async (req, res) => {
 const updateProperty = async (req, res) => {
   try {
     const propertyId = req.params.id;
+
     const property = await Property.findByIdAndUpdate(propertyId, req.body, {
       new: true,
     });
@@ -196,7 +197,7 @@ const updateProperty = async (req, res) => {
     }
     sendNotificationToMembersOfOwnerShipBody(
       property.ownerShipBodyId,
-      `An update has occured on the following property: ${property.plotId} located at ${property.location}.`
+      `An update has occurred on the following property: ${property.plotId} located at ${property.location}.`
     );
     res.status(200).json(property);
   } catch (error) {
