@@ -3,7 +3,7 @@ const allowedOrigins = [];
 if (process.env.NODE_ENV === 'production') {
   allowedOrigins.push(process.env.WEB_URL);
 } else {
-  allowedOrigins.push('*');
+  allowedOrigins.push('http://localhost:3000');
 }
 
 const corsOptions = {

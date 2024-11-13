@@ -8,8 +8,9 @@ const userSchema = new Schema(
     idType: { type: String, required: true },
     phoneNumber: { type: String, required: true, unique: true },
     email: { type: String, unique: true },
-    password: { type: String, required: true },
+    // password: { type: String, required: true },
     name: { type: String, required: true },
+    otp: { type: String },
   },
   { timestamps: true }
 );

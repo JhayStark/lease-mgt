@@ -6,6 +6,9 @@ const { isValidId } = require('../../helpers/validators');
 const {
   duplicateAndValidationErrorhandler,
 } = require('../../helpers/errorHandlers');
+const {
+  sendNotificationToMembersOfOwnerShipBody,
+} = require('../../utilities/notifications');
 
 const createPropertySchema = object({
   plotId: string().required(),
@@ -38,7 +41,10 @@ const createProperty = async (req, res) => {
     if (!newProperty) {
       return res.status(400).json({ message: 'Property not created' });
     }
-
+    sendNotificationToMembersOfOwnerShipBody(
+      validProperty?.ownerShipBodyId,
+      `A new property has been added to the properties of ${existingOwnerShipBody.name}.`
+    );
     return res.status(201).json({
       message: 'Property Created',
     });
@@ -77,7 +83,7 @@ const getProperties = async (req, res) => {
           as: 'ownerShipBody',
         },
       },
-      { $unwind: '$ownerShipBody' },
+      // { $unwind: '$ownerShipBody' },
       {
         $match: {
           'ownerShipBody.ownerShipId': { $regex: ownerShipId, $options: 'i' },
@@ -91,7 +97,7 @@ const getProperties = async (req, res) => {
           as: 'head',
         },
       },
-      { $unwind: '$head' },
+      // { $unwind: '$head' },
     ];
 
     if (isValidId(ownerShipBodyId)) {
@@ -114,19 +120,34 @@ const getProperties = async (req, res) => {
     const metaData = {
       pageNumber,
       pageSize,
-      totalCount: countResult[0]?.total || 0,
+      total: countResult[0]?.total || 0,
       totalPages: Math.ceil(countResult[0]?.total / pageSize) || 0,
     };
-
-    if (metaData.totalCount < 10) {
-      metaData.pageNumber = 1;
-    }
 
     const properties = await Property.aggregate([
       ...aggregationPipeline,
       { $sort: { createdAt: -1 } },
+      {
+        $project: {
+          plotId: 1,
+          gpsAddress: 1,
+          location: 1,
+          region: 1,
+          district: 1,
+          coordinates: 1,
+          ownerShipBodyId: 1,
+          ownerShipBody: 1,
+          'head.firstName': 1,
+          'head.lastName': 1,
+          'head.phoneNumber': 1,
+          'head.email': 1,
+          sitePlan: 1,
+          landCertificate: 1,
+          createdAt: 1,
+        },
+      },
     ])
-      .skip((metaData.pageNumber - 1) * pageSize)
+      .skip((pageNumber - 1) * pageSize)
       .limit(pageSize);
     res.status(200).json({ ...metaData, properties });
   } catch (error) {
@@ -138,12 +159,21 @@ const getProperties = async (req, res) => {
 const getPropertyById = async (req, res) => {
   try {
     const propertyId = req.params.id;
-    const property = await Property.findById(propertyId).populate([
-      {
-        path: 'ownerShipBodyId',
-        select: 'name',
-      },
-    ]);
+    const publicUser = req.query.publicUser;
+    const selectors = [];
+
+    if (publicUser) {
+      selectors.push('-otherDocuments', '-landCertificate');
+    }
+
+    const property = await Property.findById(propertyId)
+      .populate([
+        {
+          path: 'ownerShipBodyId',
+          populate: { path: 'head', select: '-password' },
+        },
+      ])
+      .select(selectors);
 
     if (!property) {
       return res.status(404).json({ message: 'Property not found' });
@@ -154,8 +184,31 @@ const getPropertyById = async (req, res) => {
   }
 };
 
+const updateProperty = async (req, res) => {
+  try {
+    const propertyId = req.params.id;
+
+    const property = await Property.findByIdAndUpdate(propertyId, req.body, {
+      new: true,
+    });
+
+    if (!property) {
+      return res.status(404).json({ message: 'Property not found' });
+    }
+    sendNotificationToMembersOfOwnerShipBody(
+      property.ownerShipBodyId,
+      `An update has occurred on the following property: ${property.plotId} located at ${property.location}.`
+    );
+    res.status(200).json(property);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
 module.exports = {
   createProperty,
   getProperties,
   getPropertyById,
+  updateProperty,
 };

@@ -23,6 +23,9 @@ const ownerShipBodySchema = new Schema(
       index: true,
       unique: true,
     },
+    search: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

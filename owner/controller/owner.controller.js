@@ -8,6 +8,11 @@ const {
   duplicateAndValidationErrorhandler,
 } = require('../../helpers/errorHandlers');
 const { officialsPermissions } = require('../../config/rolesAndPermissions');
+const { sendSMS } = require('../../utilities/sms');
+const {
+  sendNotificationToMembersOfOwnerShipBody,
+  sendNotificationToNewMembersOfOwnerShipBody,
+} = require('../../utilities/notifications');
 
 const ownerShipMemberSchema = array()
   .of(
@@ -27,11 +32,17 @@ const ownerShipBodySchema = object({
   head: mixed()
     .test('isValidMongoId', 'Invalid head', value => isValidId(value))
     .required(),
-  ownerShipId: string().required(),
   type: string()
     .oneOf(['Family', 'State', 'Organization', 'Individual'])
     .required(),
 });
+
+function generateUniqueId() {
+  const timestamp = Date.now().toString(36).toUpperCase(); // Base-36 timestamp for some uniqueness
+  const randomChars = Math.random().toString(36).substr(2, 5).toUpperCase(); // 5 random characters
+
+  return `${timestamp}-${randomChars}`;
+}
 
 const createOwnerShipBody = async (req, res) => {
   const permissions = req.user.permissions;
@@ -44,8 +55,11 @@ const createOwnerShipBody = async (req, res) => {
     if (!exisitinghead) {
       return res.status(400).json({ message: 'Invalid Family head' });
     }
+    const ownerShipId = generateUniqueId();
     const newOwnerShipBody = await OwnerShipBody.create({
       ...validSchema,
+      ownerShipId,
+      search: `${validSchema.name} ${ownerShipId} ${exisitinghead.idNumber} ${exisitinghead.name}`,
     });
 
     const newOwnerShipMember = await OwnerShipMember.create({
@@ -55,6 +69,8 @@ const createOwnerShipBody = async (req, res) => {
     });
 
     if (newOwnerShipBody && newOwnerShipMember) {
+      const inviteMessage = `Welcome to Asset911, a new property ownership body ${newOwnerShipBody.name} has been created with you as the Ownership Head`;
+      sendSMS(exisitinghead.phoneNumber, inviteMessage);
       res.status(201).json({ message: 'Ownership Body created' });
     }
   } catch (error) {
@@ -80,7 +96,10 @@ const addOwnerShipBodyMember = async (req, res) => {
         return { ...member, ownerShipId: req.params.id };
       })
     );
-
+    sendNotificationToNewMembersOfOwnerShipBody(
+      validSchema,
+      `Hello, you have been added to the Ownership Body (${existingOwnerShipBody.name}).`
+    );
     res.status(201).json({ message: 'Ownership Body members added' });
   } catch (error) {
     return duplicateAndValidationErrorhandler(error, res);
@@ -99,6 +118,7 @@ const getOwnerShipBodies = async (req, res) => {
     const headId = req.query.head || '';
     const headName = req.query.headName || '';
     const name = req.query.name || '';
+    const search = req.query.search || '';
     const bodyObjectId = isValidId(req.query.id)
       ? new mongoose.Types.ObjectId(req.query.id)
       : null;
@@ -108,6 +128,7 @@ const getOwnerShipBodies = async (req, res) => {
         $match: {
           ownerShipId: { $regex: ownerShipId, $options: 'i' },
           name: { $regex: name, $options: 'i' },
+          search: { $regex: search, $options: 'i' },
           _id: bodyObjectId || { $exists: true },
         },
       },
@@ -135,10 +156,13 @@ const getOwnerShipBodies = async (req, res) => {
       { $count: 'total' },
     ]);
 
+    const totalData = countResult[0]?.total || 0;
+
     const metaData = {
       pageNumber,
       pageSize,
-      total: Math.ceil(countResult[0].total / pageSize),
+      total: totalData,
+      totalPages: Math.ceil(totalData / pageSize),
     };
 
     if (metaData.total === 0) {
@@ -168,6 +192,7 @@ const getOwnerShipBodies = async (req, res) => {
 
     res.status(200).json({ result, metaData });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -185,7 +210,6 @@ const getOwnerShipBodyMembers = async (req, res) => {
     const ownerShipBodyId = isValidId(req.params.id)
       ? new mongoose.Types.ObjectId(req.params.id)
       : null;
-
     const aggregationPipline = [
       {
         $match: {
@@ -220,12 +244,14 @@ const getOwnerShipBodyMembers = async (req, res) => {
       return res.status(200).json({ result: [] });
     }
 
+    const totalData = countResult[0]?.total || 0;
+
     const metaData = {
       pageNumber,
       pageSize,
+      total: totalData || 0,
+      totalPages: Math.ceil(totalData / pageSize),
     };
-
-    metaData.total = Math.ceil(countResult[0].total / pageSize);
 
     const result = await OwnerShipMember.aggregate([
       ...aggregationPipline,
@@ -306,6 +332,10 @@ const updateOwnerShipBody = async (req, res) => {
     if (!ownerShipBody) {
       return res.status(404).json({ message: 'Ownership Body not found' });
     }
+    sendNotificationToMembersOfOwnerShipBody(
+      req.params.id,
+      `An update has occured on an OwnershipBody(${ownerShipBody.name}) you are a member of.`
+    );
     res.status(200).json(ownerShipBody);
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
