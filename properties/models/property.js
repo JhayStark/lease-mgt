@@ -21,6 +21,7 @@ const propertySchema = new Schema(
     landCertificate: { type: String, required: true },
     existingLease: {
       type: Schema.Types.ObjectId,
+      ref:'Lease'
     },
   },
   { timestamps: true }
