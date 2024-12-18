@@ -32,8 +32,8 @@ const leaseSchema = object({
 });
 
 const createNewLease = async (req, res) => {
-  const leaseBody = await leaseSchema.validate(req.body);
   try {
+    const leaseBody = await leaseSchema.validate(req.body);
     const { propertyId, ...body } = leaseBody;
     const property = await Property.findById(propertyId);
     if (!property) {
