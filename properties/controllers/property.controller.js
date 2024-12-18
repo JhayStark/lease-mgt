@@ -172,6 +172,9 @@ const getPropertyById = async (req, res) => {
           path: 'ownerShipBodyId',
           populate: { path: 'head', select: '-password' },
         },
+        {
+          path:'existingLease'
+        }
       ])
       .select(selectors);
 
