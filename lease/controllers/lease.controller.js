@@ -42,6 +42,8 @@ const createNewLease = async (req, res) => {
       });
     }
     const lease = await Lease.create({ ...body, propertyId: property.id });
+    property.existingLease = lease._id;
+    await property.save();
 
     res.status(201).json(lease);
   } catch (error) {
