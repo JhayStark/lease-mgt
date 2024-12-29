@@ -36,7 +36,6 @@ const registerOfficial = async (req, res) => {
     if (newOfficial)
       return res.status(201).json({ message: 'Official created successfully' });
   } catch (error) {
-    console.log(error);
     duplicateAndValidationErrorhandler(error, res);
   }
 };

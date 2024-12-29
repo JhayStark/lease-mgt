@@ -3,16 +3,37 @@ const { createOfficial } = require('./auth.controller');
 const {
   duplicateAndValidationErrorhandler,
 } = require('../../helpers/errorHandlers');
+const { object, string, array } = require('yup');
+
+const partialOfficialSchema = object({
+  firstName: string().min(1, { message: 'First name required' }),
+  lastName: string().min(1, { message: 'Last name required' }),
+  staffId: string().min(1, { message: 'Id required' }),
+  email: string().email({ message: 'Email is required' }),
+  password: string().min(8),
+  permissions: array(),
+});
 
 const updateOfficial = async (req, res) => {
   try {
     const { id } = req.params;
-    const official = await Official.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
-    if (official) res.status(200).json('Updated Successfully');
+    const patchData = await partialOfficialSchema.validate(req.body);
+    const official = await Official.findById(id);
+    if (!official) {
+      return res.status(404).json({ message: 'Official not found' });
+    }
+
+    if (patchData.firstName || patchData.lastName) {
+      patchData.name = `${patchData.firstName || official.firstName} ${
+        patchData.lastName || official.lastName
+      }`;
+    }
+
+    official.set(patchData);
+    await official.save();
+    res.status(200).json('Updated Successfully');
   } catch (error) {
-    res.status(500).json('Internal server error');
+    duplicateAndValidationErrorhandler(error, res);
   }
 };
 
@@ -30,9 +51,9 @@ const getOfficial = async (req, res) => {
   try {
     const official = await Official.findById(req.params.id);
     if (!official) return res.status(404).json('Official not found');
-    return res.status(200).json(official);
+    res.status(200).json(official);
   } catch (error) {
-    res.status(500).json('Internal server error');
+    duplicateAndValidationErrorhandler(error, res);
   }
 };
 
@@ -75,7 +96,7 @@ const getOfficials = async (req, res) => {
 
     res.status(200).json({ ...metaData, results });
   } catch (error) {
-    res.status(500).json('Internal server error');
+    duplicateAndValidationErrorhandler(error, res);
   }
 };
 
