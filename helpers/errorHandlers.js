@@ -7,7 +7,7 @@ const duplicateAndValidationErrorhandler = (error, res) => {
   if (error instanceof ValidationError) {
     return res.status(400).json({ message: error.message });
   }
-  return res.status(500).json({ message: 'Internal server error' });
+  return res.status(500).json(error);
 };
 
 module.exports = { duplicateAndValidationErrorhandler };
