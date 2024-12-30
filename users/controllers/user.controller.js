@@ -1,4 +1,14 @@
 const User = require('../models/user');
+const { object, string } = require('yup');
+
+const partialUserSchema = object({
+  firstName: string().min(1, { message: 'First name required' }),
+  lastName: string().min(1, { message: 'Last name required' }),
+  idNumber: string().min(1, { message: 'Id required' }),
+  idType: string().min(1, { message: 'Id type is required' }),
+  phoneNumber: string().min(1, { message: 'Phone number is required' }),
+  email: string().email({ message: 'Email is required' }),
+});
 
 const getUsers = async (req, res) => {
   const pageNumber = req.query.pageNumber || 1;
@@ -39,32 +49,39 @@ const getUsers = async (req, res) => {
       .limit(pageSize);
     res.status(200).json({ ...metaData, results });
   } catch (error) {
-    res.status(500).json({ message: 'Internel server error' });
+    res.status(500).json({ message: 'Internel server error', error });
   }
 };
 
 const getUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(['-password']);
-    if (user) {
-      res.status(200).json(user);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
+    res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ message: 'Internel server error' });
+    res.status(500).json({ message: 'Internel server error', error });
   }
 };
 
 const updateUser = async (req, res) => {
   try {
+    const userData = await partialUserSchema.validate(req.body);
     const id = req.params.id;
-    const user = await User.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
-    if (user) {
-      res.status(200).json({ message: 'User updated successfully' });
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (userData.firstName || userData.lastName) {
+      userData.name = `${userData.firstName ?? user?.firstName} ${
+        userData.lastName ?? user.lastName
+      }`;
     }
+
+    user.set(userData);
+    await user.save();
+    res.status(200).json({ message: 'User updated successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Internel server error' });
+    res.status(500).json({ message: 'Internel server error', error });
   }
 };
 
@@ -75,7 +92,7 @@ const getUserByIDNumber = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ message: 'Internel server error' });
+    res.status(500).json({ message: 'Internel server error', error });
   }
 };
 
