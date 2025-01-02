@@ -74,6 +74,11 @@ const verifyUserByOtp = async (req, res) => {
         accessToken,
         refreshToken,
         firstName: user.firstName,
+        email: user.email,
+        idNumber: user.idNumber,
+        phoneNumber: user.phoneNumber,
+        idType: user.idType,
+        lastName: user.lastName,
       };
       return res.status(200).json(userObject);
     }

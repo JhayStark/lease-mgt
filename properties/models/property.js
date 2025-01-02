@@ -17,11 +17,11 @@ const propertySchema = new Schema(
     district: { type: String, required: true },
     coordinates: { type: String, required: true },
     sitePlan: { type: String, required: true },
-    otherDocuments: { type: Array, required: true },
-    landCertificate: { type: String, required: true },
+    otherDocuments: { type: Object, required: true },
+    landCertificate: { type: Object, required: true },
     existingLease: {
       type: Schema.Types.ObjectId,
-      ref:'Lease'
+      ref: 'Lease',
     },
   },
   { timestamps: true }

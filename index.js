@@ -16,6 +16,7 @@ const serverSessionRouter = require('./config/server-session');
 const officialRouter = require('./officials/routes/official.routes');
 const { corsOptions } = require('./config/corsOptions');
 const { verifyToken } = require('./config/jwt');
+const upload = require('./config/multer-config');
 
 const app = express();
 
@@ -28,14 +29,31 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 
+const propertyUploadFields = upload.fields([
+  { name: 'landCertificate', maxCount: 1 }, // Single file field
+  { name: 'otherDocuments', maxCount: 10 }, // Multiple files field
+]);
+
+const leaseUploadFields = upload.fields([
+  { name: 'documents', maxCount: 1 }, // Single file field
+]);
+
 app.use('/session', serverSessionRouter);
 app.use('/user-auth', authRouter);
 app.use('/official-auth', officialAuthRouter);
 app.use('/user', verifyToken, userRouter);
 app.use('/officials', verifyToken, officialRouter);
 app.use('/owner', verifyToken, ownerRouter);
-app.use('/property', verifyToken, propertyRouter);
-app.use('/lease', verifyToken, leaseRouter);
+app.use('/property', verifyToken, propertyUploadFields, propertyRouter);
+app.use('/lease', verifyToken, leaseUploadFields, leaseRouter);
+// app.use('/file-upload', uploadFields, (req, res) => {
+//   try {
+//     const files = req.files;
+//     res.status(200).json({ files });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// });
 
 const PORT = process.env.PORT || 5000;
 
