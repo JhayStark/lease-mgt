@@ -9,6 +9,7 @@ const {
 const {
   sendNotificationToMembersOfOwnerShipBody,
 } = require('../../utilities/notifications');
+const fileUploader = require('../../utilities/file-upload');
 
 const createPropertySchema = object({
   plotId: string().required(),
@@ -21,13 +22,14 @@ const createPropertySchema = object({
   district: string().required(),
   coordinates: string().required(),
   sitePlan: string().required(),
-  otherDocuments: array(),
-  landCertificate: string().required(),
+  // otherDocuments: array(),
+  // landCertificate: string().required(),
 });
 
 const createProperty = async (req, res) => {
   try {
     const validProperty = await createPropertySchema.validate(req.body);
+    const uploadData = await fileUploader(req.files);
 
     const existingOwnerShipBody = await OwnerShipBody.findById(
       validProperty?.ownerShipBodyId
@@ -37,7 +39,10 @@ const createProperty = async (req, res) => {
       return res.status(404).json({ message: 'Ownership body not found' });
     }
 
-    const newProperty = await Property.create(validProperty);
+    const newProperty = await Property.create({
+      ...validProperty,
+      ...uploadData,
+    });
     if (!newProperty) {
       return res.status(400).json({ message: 'Property not created' });
     }
@@ -173,8 +178,8 @@ const getPropertyById = async (req, res) => {
           populate: { path: 'head', select: '-password' },
         },
         {
-          path:'existingLease'
-        }
+          path: 'existingLease',
+        },
       ])
       .select(selectors);
 
