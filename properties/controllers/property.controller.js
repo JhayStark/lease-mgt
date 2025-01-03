@@ -21,7 +21,7 @@ const createPropertySchema = object({
   region: string().required(),
   district: string().required(),
   coordinates: string().required(),
-  sitePlan: string().required(),
+  // sitePlan: string().required(),
   // otherDocuments: array(),
   // landCertificate: string().required(),
 });
