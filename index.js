@@ -30,8 +30,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 const propertyUploadFields = upload.fields([
-  { name: 'landCertificate', maxCount: 1 }, // Single file field
+  { name: 'landCertificate', maxCount: 10 }, // Single file field
   { name: 'otherDocuments', maxCount: 10 }, // Multiple files field
+  { name: 'sitePlan', maxCount: 10 },
 ]);
 
 const leaseUploadFields = upload.fields([
