@@ -54,6 +54,7 @@ const createProperty = async (req, res) => {
       message: 'Property Created',
     });
   } catch (error) {
+    console.log(error);
     duplicateAndValidationErrorhandler(error, res);
   }
 };
