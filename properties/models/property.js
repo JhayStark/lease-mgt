@@ -16,7 +16,7 @@ const propertySchema = new Schema(
     region: { type: String, required: true },
     district: { type: String, required: true },
     coordinates: { type: String, required: true },
-    sitePlan: { type: String, required: true },
+    sitePlan: { type: Object, required: true },
     otherDocuments: { type: Object, required: true },
     landCertificate: { type: Object, required: true },
     existingLease: {
