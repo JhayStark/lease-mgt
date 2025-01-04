@@ -20,19 +20,9 @@ const leaseSchema = new Schema(
       required: true,
     },
     lessee: {
-      type: Object,
+      type: Schema.Types.ObjectId,
       required: true,
-      default: {
-        name: '',
-        email: '',
-        phone: '',
-        iDNumber: ' ',
-        idType: '',
-        address: '',
-        nationality: '',
-        occupation: '',
-        image: '',
-      },
+      ref: 'User',
     },
     beneficialOwner: {
       type: Schema.Types.ObjectId,
@@ -40,7 +30,7 @@ const leaseSchema = new Schema(
       ref: 'User',
     },
     documents: {
-      type: Array,
+      type: Object,
       required: true,
     },
     groundRent: {

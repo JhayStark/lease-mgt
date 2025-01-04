@@ -36,7 +36,7 @@ const propertyUploadFields = upload.fields([
 ]);
 
 const leaseUploadFields = upload.fields([
-  { name: 'documents', maxCount: 1 }, // Single file field
+  { name: 'documents', maxCount: 10 }, // Single file field
 ]);
 
 app.use('/session', serverSessionRouter);
