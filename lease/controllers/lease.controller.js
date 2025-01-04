@@ -6,6 +6,7 @@ const { isValidId } = require('../../helpers/validators');
 const {
   duplicateAndValidationErrorhandler,
 } = require('../../helpers/errorHandlers');
+const fileUploader = require('../../utilities/file-upload');
 
 const leaseSchema = object({
   propertyId: mixed()
@@ -13,21 +14,13 @@ const leaseSchema = object({
     .required(),
   startDate: date().required(),
   endDate: date().required(),
-  lessee: object({
-    name: string().required(),
-    email: string().email().required(),
-    phone: string().required(),
-    idNumber: string().required(),
-    idType: string().required(),
-    address: string().required(),
-    nationality: string().required(),
-    occupation: string().required(),
-    image: string(),
-  }).required(),
+  lessee: mixed()
+    .test('isValidMongoId', 'Invalid UserId', value => isValidId(value))
+    .required(),
   beneficialOwner: mixed()
     .test('isValidMongoId', 'Invalid UserId', value => isValidId(value))
     .required(),
-  documents: array().required(),
+  // documents: array().required(),
   groundRent: string().required(),
 });
 
@@ -41,7 +34,13 @@ const createNewLease = async (req, res) => {
         message: 'Property not found',
       });
     }
-    const lease = await Lease.create({ ...body, propertyId: property.id });
+    const uploadData = await fileUploader(req.files);
+
+    const lease = await Lease.create({
+      ...body,
+      propertyId: property.id,
+      ...uploadData,
+    });
     property.existingLease = lease._id;
     await property.save();
 
@@ -90,8 +89,8 @@ const getLeases = async (req, res) => {
           'property.region': { $regex: region, $options: 'i' },
           'property.district': { $regex: district, $options: 'i' },
           'property.location': { $regex: location, $options: 'i' },
-          'lessee.name': { $regex: lessee, $options: 'i' },
-          'lessee.idNumber': { $regex: lesseeId, $options: 'i' },
+          // 'lessee.name': { $regex: lessee, $options: 'i' },
+          // 'lessee.idNumber': { $regex: lesseeId, $options: 'i' },
         },
       },
     ];

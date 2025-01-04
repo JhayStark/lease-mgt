@@ -29,7 +29,6 @@ const createPropertySchema = object({
 const createProperty = async (req, res) => {
   try {
     const validProperty = await createPropertySchema.validate(req.body);
-    const uploadData = await fileUploader(req.files);
 
     const existingOwnerShipBody = await OwnerShipBody.findById(
       validProperty?.ownerShipBodyId
@@ -38,6 +37,8 @@ const createProperty = async (req, res) => {
     if (!existingOwnerShipBody) {
       return res.status(404).json({ message: 'Ownership body not found' });
     }
+
+    const uploadData = await fileUploader(req.files);
 
     const newProperty = await Property.create({
       ...validProperty,
@@ -180,6 +181,7 @@ const getPropertyById = async (req, res) => {
         },
         {
           path: 'existingLease',
+          populate: [{ path: 'beneficialOwner' }, { path: 'lessor' }],
         },
       ])
       .select(selectors);
