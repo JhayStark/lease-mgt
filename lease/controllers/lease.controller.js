@@ -138,6 +138,7 @@ const getLeaseById = async (req, res) => {
       'lessor',
       'propertyId',
       'beneficialOwner',
+      'lessee',
     ]);
     res.status(200).json(lease);
   } catch (error) {
