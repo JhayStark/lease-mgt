@@ -40,7 +40,7 @@ const leaseSchema = new Schema(
     lessor: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: 'OwnerShipBody',
+      ref: 'User',
     },
     groundRentHistory: {
       type: Array,
