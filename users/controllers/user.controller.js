@@ -11,8 +11,8 @@ const partialUserSchema = object({
 });
 
 const getUsers = async (req, res) => {
-  const pageNumber = req.query.pageNumber || 1;
-  const pageSize = req.query.pageSize || 10;
+  const pageNumber = parseInt(req.query.pageNumber) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
   const name = req.query.name || '';
   const email = req.query.email || '';
   const idNumber = req.query.idNumber || '';
@@ -35,10 +35,11 @@ const getUsers = async (req, res) => {
       ...aggregationPipeline,
       { $count: 'total' },
     ]);
+
     const metaData = {
       pageNumber,
       pageSize,
-      totalPages: Math.ceil(count[0]?.total || 0 / pageSize),
+      totalPages: Math.ceil(count[0]?.total / pageSize) || 0,
       total: count[0]?.total || 0,
     };
     const results = await User.aggregate([
