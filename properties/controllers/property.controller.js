@@ -71,6 +71,7 @@ const getProperties = async (req, res) => {
     const coordinates = req.query?.coordinates || '';
     const ownerShipId = req.query?.ownerShipId || '';
     const ownerShipBodyId = req.query?.ownerShipBodyId || '';
+    const userId = req.query?.userId || '';
 
     const aggregationPipeline = [
       {
@@ -106,6 +107,31 @@ const getProperties = async (req, res) => {
       },
       // { $unwind: '$head' },
     ];
+
+    if (userId) {
+      if (!isValidId(userId)) {
+        return res.status(400).json({ message: 'Invalid userId' });
+      }
+
+      aggregationPipeline.push(
+        {
+          $lookup: {
+            from: 'ownershipmembers',
+            localField: 'ownerShipBodyId',
+            foreignField: 'ownerShipId',
+            as: 'membership',
+          },
+        },
+        {
+          $match: {
+            $or: [
+              { 'ownerShipBody.head': new mongoose.Types.ObjectId(userId) }, // Match head
+              { 'membership.userId': new mongoose.Types.ObjectId(userId) }, // Match member
+            ],
+          },
+        }
+      );
+    }
 
     if (isValidId(ownerShipBodyId)) {
       aggregationPipeline.push({
