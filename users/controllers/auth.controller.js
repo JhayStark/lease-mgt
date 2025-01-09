@@ -79,6 +79,7 @@ const verifyUserByOtp = async (req, res) => {
         phoneNumber: user.phoneNumber,
         idType: user.idType,
         lastName: user.lastName,
+        id: user._id,
       };
       return res.status(200).json(userObject);
     }
