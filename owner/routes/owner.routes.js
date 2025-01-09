@@ -22,6 +22,6 @@ ownerRouter.patch(
   '/update-ownershipbody-member/:id',
   updateOwnerShipBodyMember
 );
-ownerRouter.get('/get-ownerShipbodies-by-user', getOwnerShipBodiesByUserId);
+ownerRouter.get('/get-ownerShipbodies-by-user/:id', getOwnerShipBodiesByUserId);
 
 module.exports = ownerRouter;
