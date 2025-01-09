@@ -8,6 +8,7 @@ const {
   getOwnerShipBodyById,
   updateOwnerShipBody,
   updateOwnerShipBodyMember,
+  getOwnerShipBodiesByUserId,
 } = require('../controller/owner.controller');
 
 ownerRouter.post('/add-ownershipbody', createOwnerShipBody);
@@ -21,5 +22,6 @@ ownerRouter.patch(
   '/update-ownershipbody-member/:id',
   updateOwnerShipBodyMember
 );
+ownerRouter.get('/get-ownerShipbodies-by-user', getOwnerShipBodiesByUserId);
 
 module.exports = ownerRouter;
