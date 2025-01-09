@@ -55,6 +55,9 @@ const loginOfficial = async (req, res) => {
           refreshToken,
           permissions: official.permissions,
           firstName: official.firstName,
+          lastName: official.lastName,
+          email: official.email,
+          id: official._id,
         };
         official.refreshToken = refreshToken;
         await official.save();
