@@ -377,7 +377,7 @@ const getOwnerShipBodiesByUserId = async (req, res) => {
       },
       {
         $lookup: {
-          from: 'ownerships',
+          from: 'ownershipbodies',
           localField: 'ownerShipId',
           foreignField: '_id',
           as: 'ownerShip',
