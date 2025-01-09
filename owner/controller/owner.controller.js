@@ -361,6 +361,79 @@ const updateOwnerShipBodyMember = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+//get users ownership bodies using aggregation pipeline allow search by name of ownership body
+const getOwnerShipBodiesByUserId = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const name = req.query.name || '';
+    const pageNumber = parseInt(req.query.pageNumber) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 10;
+    const aggregationPipline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+        },
+      },
+      {
+        $lookup: {
+          from: 'ownershipbodies',
+          localField: 'ownerShipId',
+          foreignField: '_id',
+          as: 'ownerShip',
+        },
+      },
+      {
+        $unwind: '$ownerShip',
+      },
+      {
+        $match: {
+          'ownerShip.name': { $regex: name, $options: 'i' },
+        },
+      },
+    ];
+
+    const countResult = await OwnerShipMember.aggregate([
+      ...aggregationPipline,
+      { $count: 'total' },
+    ]);
+
+    if (countResult.length === 0) {
+      return res.status(200).json({ result: [] });
+    }
+
+    const totalData = countResult[0]?.total || 0;
+
+    const metaData = {
+      pageNumber,
+      pageSize,
+      total: totalData || 0,
+      totalPages: Math.ceil(totalData / pageSize),
+    };
+
+    const result = await OwnerShipMember.aggregate([
+      ...aggregationPipline,
+      { $sort: { createdAt: -1 } },
+      {
+        $project: {
+          userId: 1,
+          ownerShipId: 1,
+          role: 1,
+          'ownerShip.name': 1,
+          'ownerShip.ownerShipId': 1,
+          'ownerShip.type': 1,
+        },
+      },
+    ])
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize);
+    res.status(200).json({ result, ...metaData });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 module.exports = {
   createOwnerShipBody,
   addOwnerShipBodyMember,
@@ -370,4 +443,5 @@ module.exports = {
   getOwnerShipBodyMemberById,
   updateOwnerShipBody,
   updateOwnerShipBodyMember,
+  getOwnerShipBodiesByUserId,
 };
