@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Lease = require('../models/lease');
 const Property = require('../../properties/models/property');
+const OwnerShipMember = require('../../owner/models/ownerShipMember');
 const { object, array, string, mixed, date } = require('yup');
 const { isValidId } = require('../../helpers/validators');
 const {
@@ -40,6 +41,7 @@ const createNewLease = async (req, res) => {
       ...body,
       propertyId: property.id,
       ...uploadData,
+      lessor: property.ownerShipBodyId,
     });
     property.existingLease = lease._id;
     await property.save();
@@ -70,8 +72,6 @@ const getLeases = async (req, res) => {
   const location = req.query?.location || '';
   const ownerShipBodyId = req.query?.ownerShipBodyId || '';
   const propertyId = req.query?.propertyId || '';
-  const lessee = req.query?.lesseeName || '';
-  const lesseeId = req.query?.lesseeId || '';
   try {
     const aggregationPipeline = [
       {
@@ -137,6 +137,7 @@ const getLeaseById = async (req, res) => {
     const lease = await Lease.findById(req.params.id).populate([
       'lessor',
       'propertyId',
+      'createdBy',
       'beneficialOwner',
       'lessee',
     ]);
@@ -146,9 +147,46 @@ const getLeaseById = async (req, res) => {
   }
 };
 
+const getOwnershipBodiesByUserId = async userId => {
+  const ownershipMembers = await OwnerShipMember.find({ userId }).select(
+    'ownerShipId'
+  );
+  return ownershipMembers.map(member => member.ownerShipId);
+};
+
+const getLeaseofAllUsersOwnershipbodies = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    const ownershipBodyIds = await getOwnershipBodiesByUserId(userId);
+
+    const leases = await Lease.find({
+      $or: [
+        { beneficialOwner: userId },
+        { lessee: { $in: ownershipBodyIds } },
+        { lessor: { $in: ownershipBodyIds } },
+      ],
+    }).populate(['propertyId', 'createdBy']);
+
+    if (leases.length === 0) {
+      return res.status(404).json({ message: 'No leases found for this user' });
+    }
+
+    res.status(200).json({ leases });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   createNewLease,
   getLeases,
   getLeaseById,
   updateLease,
+  getLeaseofAllUsersOwnershipbodies,
 };
