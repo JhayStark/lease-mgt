@@ -5,7 +5,11 @@ const userSchema = new Schema(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     idNumber: { type: String, required: true, unique: true },
-    idType: { type: String, required: true },
+    idType: {
+      type: String,
+      required: true,
+      enum: ['Ghana Card', 'Passport', 'Voters Id'],
+    },
     phoneNumber: { type: String, required: true, unique: true },
     email: { type: String, unique: true },
     name: { type: String, required: true },

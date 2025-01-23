@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const { object, string } = require('yup');
+const { object, string, mixed } = require('yup');
 const { createAccessToken, createRefreshToken } = require('../../config/jwt');
 const { sendSMS } = require('../../utilities/sms');
 const {
@@ -16,7 +16,7 @@ const userSchema = object({
   firstName: string().min(1, { message: 'First name required' }).required(),
   lastName: string().min(1, { message: 'Last name required' }).required(),
   idNumber: string().min(1, { message: 'Id required' }).required(),
-  idType: string().min(1, { message: 'Id type is required' }).required(),
+  idType: mixed().oneOf(['Ghana Card', 'Passport', 'Voters Id']).required(),
   phoneNumber: string()
     .matches(phoneNumberRegExp, {
       message: 'Phone number must be a vaild Ghanaian number',
