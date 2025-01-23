@@ -4,7 +4,7 @@ const ownerShipBodySchema = new Schema(
   {
     type: {
       type: String,
-      enum: ['Family', 'State', 'Organization', 'Individual'],
+      enum: ['Family', 'State', 'Organization', 'Individual', 'Stool'],
       required: true,
     },
     name: {

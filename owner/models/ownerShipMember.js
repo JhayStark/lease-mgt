@@ -17,7 +17,14 @@ const ownerShipMember = new Schema(
     role: {
       type: String,
       required: true,
-      enum: ['Head', 'Family member', 'Associate', 'Co-owner', 'Manager'],
+      enum: [
+        'Head',
+        'Family member',
+        'Associate',
+        'Co-owner',
+        'Manager',
+        'Owner',
+      ],
     },
   },
   { timestamps: true }
