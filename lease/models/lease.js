@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const { boolean, string } = require('yup');
 
 const leaseSchema = new Schema(
   {
@@ -7,9 +8,15 @@ const leaseSchema = new Schema(
       required: true,
       ref: 'Property',
     },
+    createdByAdmin: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     createdBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      required: true,
+      ref: () => (this.createdByAdmin ? 'Official' : 'User'),
     },
     startDate: {
       type: Date,
@@ -41,11 +48,11 @@ const leaseSchema = new Schema(
       required: true,
       ref: 'OwnerShipBody',
     },
-    actingLessee: {
-      type: Object,
+    nameOfActingLessee: {
+      type: String,
     },
-    actingLessor: {
-      type: Object,
+    nameOfactingLessor: {
+      type: String,
     },
   },
   { timestamps: true }

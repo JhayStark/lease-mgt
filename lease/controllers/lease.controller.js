@@ -40,6 +40,7 @@ const createNewLease = async (req, res) => {
       ...body,
       propertyId: property.id,
       ...uploadData,
+      lessor: property.ownerShipBodyId,
     });
     property.existingLease = lease._id;
     await property.save();
@@ -70,8 +71,6 @@ const getLeases = async (req, res) => {
   const location = req.query?.location || '';
   const ownerShipBodyId = req.query?.ownerShipBodyId || '';
   const propertyId = req.query?.propertyId || '';
-  const lessee = req.query?.lesseeName || '';
-  const lesseeId = req.query?.lesseeId || '';
   try {
     const aggregationPipeline = [
       {
@@ -137,6 +136,7 @@ const getLeaseById = async (req, res) => {
     const lease = await Lease.findById(req.params.id).populate([
       'lessor',
       'propertyId',
+      'createdBy',
       'beneficialOwner',
       'lessee',
     ]);
