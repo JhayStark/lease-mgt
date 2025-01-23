@@ -22,7 +22,7 @@ const leaseSchema = new Schema(
     lessee: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: 'User',
+      ref: 'OwnerShipBody',
     },
     beneficialOwner: {
       type: Schema.Types.ObjectId,
@@ -31,7 +31,6 @@ const leaseSchema = new Schema(
     },
     documents: {
       type: Object,
-      required: true,
     },
     groundRent: {
       type: Number,
@@ -40,11 +39,13 @@ const leaseSchema = new Schema(
     lessor: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: 'User',
+      ref: 'OwnerShipBody',
     },
-    groundRentHistory: {
-      type: Array,
-      default: [],
+    actingLessee: {
+      type: Object,
+    },
+    actingLessor: {
+      type: Object,
     },
   },
   { timestamps: true }

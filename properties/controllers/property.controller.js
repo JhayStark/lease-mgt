@@ -185,7 +185,7 @@ const getProperties = async (req, res) => {
     res.status(200).json({ ...metaData, properties });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({ message: 'Internal Server Error', error });
   }
 };
 
@@ -213,7 +213,7 @@ const getPropertyById = async (req, res) => {
     }
     return res.status(200).json(property);
   } catch (error) {
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({ message: 'Internal Server Error', error });
   }
 };
 
@@ -235,7 +235,7 @@ const updateProperty = async (req, res) => {
     res.status(200).json(property);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: 'Internal Server Error', error });
   }
 };
 
