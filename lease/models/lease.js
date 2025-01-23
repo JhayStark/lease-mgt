@@ -48,11 +48,11 @@ const leaseSchema = new Schema(
       required: true,
       ref: 'OwnerShipBody',
     },
-    nameOfActingLessee: {
-      type: String,
+    actingLessee: {
+      type: Object,
     },
-    nameOfactingLessor: {
-      type: String,
+    actingLessor: {
+      type: Object,
     },
   },
   { timestamps: true }
