@@ -10,13 +10,17 @@ const {
   verifyOTPToken,
 } = require('../../utilities/otp');
 
+const phoneNumberRegExp = /\+233\d{9}/;
+
 const userSchema = object({
   firstName: string().min(1, { message: 'First name required' }).required(),
   lastName: string().min(1, { message: 'Last name required' }).required(),
   idNumber: string().min(1, { message: 'Id required' }).required(),
   idType: string().min(1, { message: 'Id type is required' }).required(),
   phoneNumber: string()
-    .min(1, { message: 'Phone number is required' })
+    .matches(phoneNumberRegExp, {
+      message: 'Phone number must be a vaild Ghanaian number',
+    })
     .required(),
   email: string().email({ message: 'Email is required' }),
 });
@@ -48,6 +52,8 @@ const addNewUser = async (req, res) => {
 
 const sendOtp = async (req, res) => {
   try {
+    if (phoneNumberRegExp.test(req.body.phoneNumber) === false)
+      return res.status(400).json('Invalid phone number');
     const user = await User.findOne({ phoneNumber: req.body.phoneNumber });
     if (!user) return res.status(400).json('Phone number does not exist');
     const otpResult = generateOtpAndGenerateToken(4);
@@ -65,6 +71,8 @@ const sendOtp = async (req, res) => {
 
 const verifyUserByOtp = async (req, res) => {
   try {
+    if (phoneNumberRegExp.test(req.body.phoneNumber) === false)
+      return res.status(400).json('Invalid phone number');
     const { phoneNumber, otp } = req.body;
     const user = await User.findOne({ phoneNumber });
     if (otp == verifyOTPToken(user.otp)) {
@@ -89,9 +97,26 @@ const verifyUserByOtp = async (req, res) => {
   }
 };
 
+const registerNewUser = async (req, res) => {
+  try {
+    const user = await createUser(req.body);
+    const otpResult = generateOtpAndGenerateToken(4);
+    await sendSMS(
+      user.phoneNumber,
+      `Your OTP is ${otpResult.otp}, valid for 5 mins`
+    );
+    user.otp = otpResult.token;
+    await user.save();
+    if (user) return res.status(200).json(user);
+  } catch (error) {
+    duplicateAndValidationErrorhandler(error, res);
+  }
+};
+
 module.exports = {
   createUser,
   addNewUser,
   sendOtp,
   verifyUserByOtp,
+  registerNewUser,
 };
