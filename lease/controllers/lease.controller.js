@@ -48,6 +48,7 @@ const createNewLease = async (req, res) => {
 
     res.status(201).json(lease);
   } catch (error) {
+    console.log(error);
     duplicateAndValidationErrorhandler(error, res);
   }
 };
