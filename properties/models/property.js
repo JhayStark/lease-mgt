@@ -4,14 +4,12 @@ const propertySchema = new Schema(
   {
     plotId: { type: String, required: true, unique: true },
     gpsAddress: { type: String },
-    ownerShipBodyId: [
-      {
-        type: Schema.Types.ObjectId,
-        required: true,
-        index: true,
-        ref: 'OwnerShipBody',
-      },
-    ],
+    ownerShipBodyId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      index: true,
+      ref: 'OwnerShipBody',
+    },
     location: { type: String, required: true },
     region: { type: String, required: true },
     district: { type: String, required: true },

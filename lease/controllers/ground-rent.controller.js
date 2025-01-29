@@ -24,12 +24,7 @@ const getGroundRentPayments = async (req, res) => {
     const payments = await GroundRent.find(query)
       .skip(skip)
       .limit(parseInt(limit))
-      .sort({ createdAt: -1 })
-      .populate('leaseId')
-      .populate('propertyId')
-      .populate('recievedBy')
-      .populate('nameofPayee')
-      .populate('paidBy');
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       total,
