@@ -12,33 +12,46 @@ const groundRentSchema = new Schema(
       required: true,
       ref: 'Property',
     },
-    recievedBy: {
-      type: String,
-      ref: 'User',
-    },
-    a: {
-      type: String,
-      required: true,
-    },
-    amount: {
+    amountPaid: {
       type: String,
       required: true,
     },
     documents: {
       type: Object,
     },
-    startDate: {
+    leaseStartDate: {
       type: Date,
       required: true,
     },
-    endDate: {
+    leaseEndDate: {
       type: Date,
       required: true,
+    },
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+    },
+    paymentDate: {
+      type: Date,
+      required: true,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['Cash', 'Bank transfer', 'Momo', 'Cheque'],
+    },
+    paymentDetails: {
+      type: Object,
     },
   },
   { timestamps: true }
 );
-
-groundRentSchema.index({ propertyId: 1, startDate: 1 }, { unique: true });
 
 module.exports = model('GroundRent', groundRentSchema);

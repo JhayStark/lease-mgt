@@ -16,10 +16,12 @@ const leaseSchema = object({
   startDate: date().required(),
   endDate: date().required(),
   lessee: mixed()
-    .test('isValidMongoId', 'Invalid UserId', value => isValidId(value))
+    .test('isValidMongoId', 'Invalid lessee UserId', value => isValidId(value))
     .required(),
   beneficialOwner: mixed()
-    .test('isValidMongoId', 'Invalid UserId', value => isValidId(value))
+    .test('isValidMongoId', 'Invalid beneficial owner UserId', value =>
+      isValidId(value)
+    )
     .required(),
   // documents: array().required(),
   groundRent: string().required(),
@@ -156,6 +158,8 @@ const getOwnershipBodiesByUserId = async userId => {
 };
 
 const getLeaseofAllUsersOwnershipbodies = async (req, res) => {
+  const pageNumber = req.query.pageNumber || 1;
+  const pageSize = req.query.pageSize || 10;
   try {
     const { userId } = req.params;
 
@@ -165,19 +169,38 @@ const getLeaseofAllUsersOwnershipbodies = async (req, res) => {
 
     const ownershipBodyIds = await getOwnershipBodiesByUserId(userId);
 
+    const total = await Lease.find({
+      $or: [
+        { beneficialOwner: userId },
+        { lessee: { $in: ownershipBodyIds } },
+        { lessor: { $in: ownershipBodyIds } },
+      ],
+    }).countDocuments();
+
     const leases = await Lease.find({
       $or: [
         { beneficialOwner: userId },
         { lessee: { $in: ownershipBodyIds } },
         { lessor: { $in: ownershipBodyIds } },
       ],
-    }).populate(['propertyId', 'createdBy']);
+    })
+      .populate(['propertyId', 'createdBy'])
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize);
 
     if (leases.length === 0) {
       return res.status(404).json({ message: 'No leases found for this user' });
     }
 
-    res.status(200).json({ leases });
+    res.status(200).json({
+      leases,
+      metadata: {
+        total,
+        pageNumber,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error', error: error.message });

@@ -15,7 +15,7 @@ leaseRouter.post('/add', createNewLease);
 leaseRouter.get('/all', getLeases);
 leaseRouter.get('/:id', getLeaseById);
 leaseRouter.post('/ground-rent/add', addGroundRent);
-leaseRouter.get('/ground-rent', getGroundRentPayments);
+leaseRouter.get('/ground-rent/all', getGroundRentPayments);
 leaseRouter.get('/user/:userId', getLeaseofAllUsersOwnershipbodies);
 
 module.exports = leaseRouter;
