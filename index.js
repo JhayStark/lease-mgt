@@ -17,6 +17,7 @@ const officialRouter = require('./officials/routes/official.routes');
 const { corsOptions } = require('./config/corsOptions');
 const { verifyToken } = require('./config/jwt');
 const upload = require('./config/multer-config');
+const statisticsRouter = require('./stats/stats.route');
 
 const app = express();
 
@@ -39,6 +40,7 @@ const leaseUploadFields = upload.fields([
   { name: 'documents', maxCount: 10 }, // Single file field
 ]);
 
+app.use('/stats', statisticsRouter);
 app.use('/session', serverSessionRouter);
 app.use('/user-auth', authRouter);
 app.use('/official-auth', officialAuthRouter);
