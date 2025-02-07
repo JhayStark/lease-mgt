@@ -22,6 +22,7 @@ const statisticsRouter = require('./stats/stats.route');
 const app = express();
 
 dotenv.config();
+
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(credentials);

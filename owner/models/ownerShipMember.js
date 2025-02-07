@@ -24,6 +24,8 @@ const ownerShipMember = new Schema(
         'Co-owner',
         'Manager',
         'Owner',
+        'Traditional Represntative',
+        'State Representative',
       ],
     },
   },
