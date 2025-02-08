@@ -19,14 +19,6 @@ const groundRentSchema = new Schema(
     documents: {
       type: Object,
     },
-    leaseStartDate: {
-      type: Date,
-      required: true,
-    },
-    leaseEndDate: {
-      type: Date,
-      required: true,
-    },
     firstName: {
       type: String,
       required: true,
